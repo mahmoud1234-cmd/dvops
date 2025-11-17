@@ -6,19 +6,30 @@ pipeline {
     }
     
     stages {
-        stage('Check Maven') {
+        stage('Checkout') {
             steps {
-                echo '🔍 Vérification de Maven...'
-                sh 'mvn --version'
-                sh 'ls -la'
+                checkout scm
             }
         }
         
-        stage('Simple Build') {
+        stage('Build & Test') {
             steps {
-                echo '🏗️ Construction simple...'
-                sh 'mvn clean compile'
+                echo '🚀 Construction du projet Maven...'
+                sh 'mvn clean compile test'
             }
+        }
+        
+        stage('Package') {
+            steps {
+                echo '📦 Génération du JAR...'
+                sh 'mvn package -DskipTests'
+            }
+        }
+    }
+    
+    post {
+        always {
+            echo 'Pipeline Maven exécutée avec succès!'
         }
     }
 }
