@@ -12,24 +12,30 @@ pipeline {
             }
         }
         
-        stage('Build & Test') {
+        stage('Build') {
             steps {
-                echo '🚀 Construction du projet Maven...'
-                sh 'mvn clean compile test'
+                echo 'Building project...'
+                sh 'mvn clean compile'
             }
         }
         
-        stage('Package') {
+        stage('Test') {
             steps {
-                echo '📦 Génération du JAR...'
-                sh 'mvn package -DskipTests'
+                echo 'Running tests...'
+                sh 'mvn test'
+            }
+        }
+        
+        stage('Deploy') {
+            steps {
+                echo 'Deploying...'
             }
         }
     }
     
     post {
         always {
-            echo 'Pipeline Maven exécutée avec succès!'
+            echo 'Pipeline terminée!'
         }
     }
 }
