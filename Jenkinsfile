@@ -1,35 +1,24 @@
 pipeline {
     agent any
     
-    stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-        
-        stage('Build') {
-            steps {
-                echo 'Building project...'
-            }
-        }
-        
-        stage('Test') {
-            steps {
-                echo 'Running tests...'
-            }
-        }
-        
-        stage('Deploy') {
-            steps {
-                echo 'Deploying...'
-            }
-        }
+    tools {
+        maven 'M3'
     }
     
-    post {
-        always {
-            echo 'Pipeline terminée!'
+    stages {
+        stage('Check Maven') {
+            steps {
+                echo '🔍 Vérification de Maven...'
+                sh 'mvn --version'
+                sh 'ls -la'
+            }
+        }
+        
+        stage('Simple Build') {
+            steps {
+                echo '🏗️ Construction simple...'
+                sh 'mvn clean compile'
+            }
         }
     }
 }
