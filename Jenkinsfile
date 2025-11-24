@@ -1,74 +1,84 @@
 pipeline {
     agent any
 
+    environment {
+        // Met à jour cet ID avec ton credential GitHub valide
+        GIT_CREDENTIALS = 'nouvel-id-github'
+        IMAGE_NAME = 'mahmoud/test-jenkins'
+        IMAGE_TAG = '1.0'
+    }
+
+    triggers {
+        githubPush()  // Déclenche le build à chaque push sur GitHub
+    }
+
     stages {
-        stage('Checkout GitHub') {
+
+        stage('Checkout') {
             steps {
-                echo "🔹 Clonage du projet depuis GitHub"
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: '*/main']],
-                    userRemoteConfigs: [[
-                        url: 'https://github.com/mahmoud1234-cmd/dvops.git',
-                        credentialsId: 'github-https-token'
-                    ]]
-                ])
+                echo "📥 Récupération du projet privé depuis GitHub..."
+                git branch: 'main',
+                    credentialsId: "${env.GIT_CREDENTIALS}",
+                    url: 'https://github.com/mahmoud1234-cmd/dvops'
             }
         }
 
-        stage('Build with Maven') {
+        stage('Build / Package') {
             steps {
-                echo "🔹 Construction de l'application Spring Boot"
-                sh '''
-                    if ! command -v mvn &> /dev/null; then
-                        echo "📥 Installation de Maven..."
-                        curl -L -o maven.tar.gz https://archive.apache.org/dist/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz
-                        tar -xzf maven.tar.gz -C /tmp/
-                        export PATH="/tmp/apache-maven-3.9.9/bin:${PATH}"
-                    fi
-                    
-                    mvn clean package -DskipTests
-                    echo "✅ Build Maven réussi !"
-                '''
+                echo "🔧 Génération du livrable Maven..."
+                sh "mvn clean package -DskipTests"
             }
         }
 
-        stage('Generate Docker Commands') {
+        stage('Archive Artifacts') {
             steps {
-                echo "🔹 Génération des commandes Docker"
-                sh '''
-                    echo " "
-                    echo "🎉 🎉 🎉 FÉLICITATIONS ! 🎉 🎉 🎉"
-                    echo "==================================="
-                    echo "✅ VOTRE APPLICATION SPRING BOOT EST PRÊTE !"
-                    echo " "
-                    echo "📦 Fichier JAR généré :"
-                    echo "   target/student-management-1.0.0.jar"
-                    echo " "
-                    echo "🐳 COMMANDES DOCKER À EXÉCUTER MANUELLEMENT :"
-                    echo "1. Construire l'image Docker :"
-                    echo "   docker build -t mahmoud340/student-management:latest ."
-                    echo " "
-                    echo "2. Tester l'application :"
-                    echo "   docker run -d -p 9090:9090 --name student-app mahmoud340/student-management:latest"
-                    echo "   curl http://localhost:9090/"
-                    echo " "
-                    echo "3. Publier sur DockerHub :"
-                    echo "   docker login"
-                    echo "   docker push mahmoud340/student-management:latest"
-                    echo " "
-                    echo "🚀 VOTRE PIPELINE CI EST FONCTIONNEL !"
-                    echo "L'application Spring Boot est compilée avec succès."
-                '''
+                echo "📦 Archivage du livrable dans target/"
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
         }
+
+        stage('Build Docker Image') {
+            steps {
+                echo "🐳 Création de l'image Docker..."
+                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                echo "🚀 Push de l'image vers DockerHub..."
+                sh """
+                    echo 'dckr_pat_CaQ1tkxUPG6cPF2KDxEXEbXnw44' | docker login -u mahmoud340 --password-stdin
+                    docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                    docker logout
+                """
+            }
+        }
+
     }
 
     post {
+        failure {
+            echo "❌ Build échoué, envoi de l'email..."
+            emailext(
+                subject: "Build Jenkins ÉCHOUÉ !",
+                body: """
+Bonjour,
+
+Le build Jenkins a échoué.
+Job : ${env.JOB_NAME}
+Build : #${env.BUILD_NUMBER}
+
+Consultez Jenkins pour plus de détails.
+
+Cordialement.
+""",
+                to: "mahmoudhasnaoui223@gmail.com"
+            )
+        }
+
         success {
-            echo "✅ PIPELINE RÉUSSI - Application Spring Boot construite !"
-            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-            archiveArtifacts artifacts: 'Dockerfile', fingerprint: true
+            echo "✅ Pipeline terminé avec succès !"
         }
     }
 }
