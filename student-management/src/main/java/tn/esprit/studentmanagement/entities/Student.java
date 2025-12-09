@@ -25,6 +25,7 @@ public class Student {
     private String address;
 
     @ManyToOne
+    @JsonIgnore 
     private Department department;
 
     @OneToMany(mappedBy = "student")
