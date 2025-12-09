@@ -1,6 +1,5 @@
 package tn.esprit.studentmanagement.entities;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
+ 
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -23,6 +22,5 @@ public class Department {
     private String head; // chef de département
 
     @OneToMany(mappedBy = "department")
-    @JsonIgnore 
-    private List<Student> students;
+     private List<Student> students;
 }
