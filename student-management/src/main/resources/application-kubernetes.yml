@@ -1,8 +1,0 @@
-spring:
-  config:
-    activate:
-      on-profile: kubernetes
-  datasource:
-    url: jdbc:mysql://${MYSQL_HOST:mysql-service}:3306/${MYSQL_DATABASE:studentdb}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-    username: ${MYSQL_USERNAME:student}
-    password: ${MYSQL_PASSWORD:student123}
