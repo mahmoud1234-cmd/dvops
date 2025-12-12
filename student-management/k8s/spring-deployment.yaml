@@ -17,7 +17,7 @@ spec:
       - name: student-app
         image: mahmoud340/student-management:latest
         ports:
-        - containerPort: 8089
+        - containerPort: 8080
         env:
         - name: SPRING_DATASOURCE_URL
           valueFrom:
