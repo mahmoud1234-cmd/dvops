@@ -9,7 +9,7 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 COPY --from=build /app/target/student-management-0.0.1-SNAPSHOT.jar app.jar
-EXPOSE 8089
+EXPOSE 8080
 
 # Configuration via variables d'environnement
 ENV SPRING_DATASOURCE_URL=jdbc:mysql://mysql-service:3306/studentdb
